@@ -1,3 +1,5 @@
+#![feature(macro_rules)]
+
 use std::os;
 use std::io::{Reader,BufferedReader};
 use std::io::File;
@@ -5,18 +7,17 @@ use std::io::stdio::{stdout,stdin,stdout_raw};
 
 static TAPE_WIDTH: uint = 30000;
 
-type Program = Vec<Op>;
+type Program = Vec<OpCode>;
 
 #[deriving(Show)]
-enum Op {
+enum OpCode {
     Lshift,
     Rshift,
     Putc,
     Getc,
     Inc,
     Dec,
-    Lbrace,
-    Rbrace
+    Loop(Vec<OpCode>),
 }
 
 fn usage() {
@@ -24,98 +25,73 @@ fn usage() {
     println!("Usage: {} <filename>", args[0]);
 }
 
-// fn _loop(content: &[Op], tape: &mut [u8]) {
-//     let idx = 0;
-
-//     if tape[idx] == 0 {
-//         return;
-//     }
-
-//     while tape[idx] != Rbrace {
-//     }
-// }
-
 struct Context {
     idx: uint,
     tape: [u8, ..TAPE_WIDTH],
 }
 
-fn matching_brace(program: &Vec<Op>, start: uint) -> uint {
-    let mut depth = 0;
-    let mut pos = 0;
-    loop {
-        println!("analysing: {}", *program.get(start + pos));
-        match *program.get(start + pos) {
-            Lbrace => depth += 1,
-            Rbrace => {
-                if depth == 0 { break }
-                depth -= 1;
-            }
-            _ => {},
-        }
-        pos += 1;
-    }
-    return pos;
-
-}
-
-fn eval(program: &Program, frame_loc: uint, mut ctx: Context ) -> uint {
+fn eval(program: &Vec<OpCode>, ctx: &mut Context ) {
     // Does the spec have strong feelings about which way/how far the tape
     // goes?
-    let mut pc = frame_loc;
+    let mut pc = 0;
     let mut _out = stdout();
     // let _in  = Reader::new(stdin());
     let mut _in  = stdin();
 
     while pc < program.len() {
-        let op = *program.get(pc);
-        println!("Evaluating: {}, pc: {} curval: {}", op, pc, ctx.tape[ctx.idx]);
-        match op {
+        match *program.get(pc) {
             Lshift  => ctx.idx -= 1,
             Rshift  => ctx.idx += 1,
             Inc     => ctx.tape[ctx.idx] += 1,
             Dec     => ctx.tape[ctx.idx] -= 1,
             Putc    => { _out.write_u8(ctx.tape[ctx.idx]); () },
             Getc    => { ctx.tape[ctx.idx] = _in.read_u8().unwrap(); () },
-            Rbrace => {
-                if ctx.tape[ctx.idx] == 0 {
-                    return pc;
-                } else {
-                    println!("Jumping back to {} isn: {}", frame_loc - 1, program.get(frame_loc - 2));
-                    pc = (frame_loc - 1) // -2 is the increment and skip back one
-
-                }
-            }
-            Lbrace => {
-                // Specialcase skips
-                if ctx.tape[ctx.idx] == 0 {
-                    pc += matching_brace(program, pc);
-                } else {
-                    pc = eval(program, pc + 1, ctx); // +1 ensures we execute after the brace
-                    ()
-                }
+            Loop(ref l) => {
+                while ctx.tape[ctx.idx] != 0 {
+                    eval(l, ctx);
+                };
             }
         }
         pc += 1;
     }
-    return 0;
 }
 
 fn parse_and_eval(filename: &str) {
     let mut program: Program = vec!();
+    let mut loop_stack: Vec<Vec<OpCode>> = vec!();
     // let file = File::open(&Path::new(filename));
     let mut file = BufferedReader::new(File::open(&Path::new(filename)));
 
+    macro_rules! push(
+        ($op:expr) => (
+            match loop_stack.pop() { // Oh god why
+                Some(mut v) => {
+                    v.push($op);
+                    loop_stack.push(v);
+                },
+                None    => program.push($op)
+            }
+            );
+        )
+
     for c in file.chars() {
         match c.unwrap() {
-            '<' => program.push(Lshift),
-            '>' => program.push(Rshift),
-            '.' => program.push(Putc),
-            ',' => program.push(Getc),
-            '+' => program.push(Inc),
-            '-' => program.push(Dec),
-            '[' => program.push(Lbrace),
-            ']' => program.push(Rbrace),
+            '<' => push!(Lshift),
+            '>' => push!(Rshift),
+            '.' => push!(Putc),
+            ',' => push!(Getc),
+            '+' => push!(Inc),
+            '-' => push!(Dec),
+            // Deal with loops at "compile" time
+            '[' => {
+                loop_stack.push(vec!());
+            },
+            ']' => {
+                match loop_stack.pop() {
+                    Some(code) => push!(Loop(code)),
+                    None => fail!("Unbalanced braces"),
+                }
+            }
             _   => {}
         }
     }
@@ -124,7 +100,7 @@ fn parse_and_eval(filename: &str) {
         idx : TAPE_WIDTH / 2,
         tape: [0, ..TAPE_WIDTH],
     };
-    eval(&program, 0, context);
+    eval(&program, &mut context);
 }
 
 fn main() {
