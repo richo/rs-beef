@@ -30,7 +30,7 @@ struct Context {
     tape: [u8, ..TAPE_WIDTH],
 }
 
-fn eval<W: Writer>(program: &Vec<OpCode>, ctx: &mut Context, output: &mut W) {
+fn eval<W: Writer>(program: &[OpCode], ctx: &mut Context, output: &mut W) {
     // Does the spec have strong feelings about which way/how far the tape
     // goes?
     let mut pc = 0;
@@ -47,7 +47,7 @@ fn eval<W: Writer>(program: &Vec<OpCode>, ctx: &mut Context, output: &mut W) {
             Getc    => { ctx.tape[ctx.idx] = _in.read_u8().unwrap(); () },
             Loop(ref l) => {
                 while ctx.tape[ctx.idx] != 0 {
-                    eval(l, ctx, output);
+                    eval(l.as_slice(), ctx, output);
                 };
             }
         }
@@ -100,7 +100,7 @@ fn parse_and_eval(filename: &str) {
         idx : TAPE_WIDTH / 2,
         tape: [0, ..TAPE_WIDTH],
     };
-    eval(&program, &mut context, &mut output);
+    eval(program.as_slice(), &mut context, &mut output);
 }
 
 fn main() {
