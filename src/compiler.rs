@@ -1,5 +1,5 @@
 use parser;
-use parser::{OpCode};
+use parser::{OpCode,Loop,Program};
 
 struct Context {
     isn: uint,
@@ -13,11 +13,23 @@ impl Context {
     }
 }
 
+fn effective_len(program: &Program) -> uint {
+    let mut len = 0;
+    for op in program.iter() {
+        match *op {
+            Loop(ref l) => len += effective_len(l) + 1,
+            _       => len += 1,
+        }
+    }
+    len
+}
+
 pub fn compile<W: Writer>(program: &[OpCode], outfile: &mut W) {
     let mut ctx = Context::new();
 
     outfile.write(PRELUDE.as_bytes());
-    inner(program, outfile, &mut ctx);
+    let final = inner(program, outfile, &mut ctx);
+    outfile.write(format!("    isn{}:\n", ctx.isn).as_bytes());
     outfile.write(EPILOGUE.as_bytes());
 }
 
@@ -53,11 +65,11 @@ fn inner<W: Writer>(program: &[OpCode], outfile: &mut W, ctx: &mut Context) {
             parser::Putc    => write_s!("    call    dot\n"),
             parser::Getc    => fail!("Getc not implemented"),
             parser::Loop(ref l) => {
-                let here = ctx.isn - 1;
+                let jmp = format!("    jmp     isn{}\n", ctx.isn - 1);
                 write_s!("    cmp      [esi], byte 0\n");
-                write!(format!("    je      isn{}\n", ctx.isn + l.len()));
+                write!(format!("    je      isn{}\n", ctx.isn + effective_len(l)));
                 inner(l.as_slice(), outfile, ctx);
-                write!(format!("    jmp     isn{}\n", here));
+                write!(jmp);
             }
         }
         pc += 1;
