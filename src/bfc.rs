@@ -12,8 +12,7 @@ fn usage() {
 }
 
 fn parse_and_compile(filename: &str, outfile: &str) {
-    let file = File::open(&Path::new(outfile)).unwrap();
-    let mut out = BufferedWriter::new(file);
+    let mut out = File::create(&Path::new(outfile));
     match parser::parse_file(filename) {
         Some(program) => compiler::compile(program.as_slice(), &mut out),
         None => fail!("Failed to parse {}", filename)
