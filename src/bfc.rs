@@ -17,6 +17,13 @@ fn parse_and_compile(filename: &str, outfile: &str) {
         Some(program) => compiler::compile(program.as_slice(), &mut out),
         None => fail!("Failed to parse {}", filename)
     }
+
+    println!("Wrote output to {} \\\\o/", outfile);
+    println!("Maybe try something like:");
+    println!("  nasm -f macho32 {} -o {}.o", outfile, outfile);
+    println!("  ld -macosx_version_min 10.7.0 -lSystem -o {}.out {}.o", outfile, outfile);
+    println!("");
+    println!("(You better believe macosx, I hardcoded the syscalls)");
 }
 
 fn main() {
