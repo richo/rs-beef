@@ -1,7 +1,7 @@
 RUSTC := $(shell which rustc)
 RUST_FLAGS = -L build
 
-all: beef
+all: beef bfc
 
 libbeef_so = build/libbeef.timestamp
 
@@ -13,6 +13,9 @@ $(libbeef_so): Makefile $(wildcard src/*.rs)
 
 
 beef: src/beef.rs $(libbeef_so)
+	$(RUSTC) $(RUST_FLAGS) -o $@ $<
+
+bfc: src/bfc.rs $(libbeef_so)
 	$(RUSTC) $(RUST_FLAGS) -o $@ $<
 
 test: beef
