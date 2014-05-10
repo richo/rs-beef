@@ -2,7 +2,7 @@ RUSTC := $(shell which rustc)
 
 all: beef
 
-beef: beef.rs
+beef: src/beef.rs
 	$(RUSTC) -o $@ $<
 
 test: beef
