@@ -1,7 +1,5 @@
-all: hello
-
-hello.o: hello.s
+%.o: %.s
 	nasm -f macho32 $< -o $@
 
-hello: hello.o
+%: %.o
 	ld -macosx_version_min 10.7.0 -lSystem -o $@ $<
