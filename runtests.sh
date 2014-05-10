@@ -8,6 +8,7 @@ if [ "$1" == "--clean" ]; then
 fi
 
 for i in test/*.bf; do
+    echo "test: $i"
     ./beef $i > $i.out
     diff -u $i.out ${i}_expected
 done
