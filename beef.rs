@@ -1,7 +1,7 @@
 #![feature(macro_rules)]
 
 use std::os;
-use std::io::{BufferedWriter,BufferedReader};
+use std::io::{BufferedReader};
 use std::io::File;
 use std::io::stdio::{stdout,stdin};
 
@@ -22,7 +22,7 @@ enum OpCode {
 
 fn usage() {
     let args = os::args();
-    println!("Usage: {} <filename>", args[0]);
+    println!("Usage: {} <filename>", args.get(0));
 }
 
 struct Context {
@@ -61,7 +61,7 @@ fn parse_and_eval(filename: &str) {
     let mut loop_stack: Vec<Vec<OpCode>> = vec!();
     // let file = File::open(&Path::new(filename));
     let mut file = BufferedReader::new(File::open(&Path::new(filename)));
-    let mut output = BufferedWriter::new(~stdout() as ~Writer);
+    let mut output = stdout();
 
     macro_rules! push(
         ($op:expr) => (
@@ -108,7 +108,7 @@ fn main() {
     let args = os::args();
     match args.len() {
         0 => unreachable!(),
-        2 => parse_and_eval(args[1]),
+        2 => parse_and_eval(*args.get(1)),
         _ => usage(),
     }
 }
