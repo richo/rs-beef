@@ -7,3 +7,5 @@
 #![feature(macro_rules)]
 
 pub mod parser;
+pub mod eval;
+pub mod context;
