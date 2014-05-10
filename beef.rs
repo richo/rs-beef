@@ -36,9 +36,10 @@ fn eval<W: Writer>(program: &[OpCode], ctx: &mut Context, output: &mut W) {
     let mut pc = 0;
     // let _in  = Reader::new(stdin());
     let mut _in  = stdin();
+    let len = program.len();
 
-    while pc < program.len() {
-        match *program.get(pc) {
+    while pc < len {
+        match program[pc] {
             Lshift  => ctx.idx -= 1,
             Rshift  => ctx.idx += 1,
             Inc     => ctx.tape[ctx.idx] += 1,
