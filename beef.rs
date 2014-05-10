@@ -98,7 +98,7 @@ fn parse_and_eval(filename: &str) {
     }
 
     let mut context: Context = Context {
-        idx : TAPE_WIDTH / 2,
+        idx : 0,
         tape: [0, ..TAPE_WIDTH],
     };
     eval(program.as_slice(), &mut context, &mut output);
