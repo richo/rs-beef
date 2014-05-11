@@ -1,7 +1,7 @@
 RUSTC := $(shell which rustc)
 RUST_FLAGS = -L build
 
-ALL = beef bfc
+ALL = beef bfc bfjit
 
 all: $(ALL)
 
@@ -18,6 +18,9 @@ beef: src/beef.rs $(libbeef_so)
 	$(RUSTC) $(RUST_FLAGS) -o $@ $<
 
 bfc: src/bfc.rs $(libbeef_so)
+	$(RUSTC) $(RUST_FLAGS) -o $@ $<
+
+bfjit: src/bfjit.rs $(libbeef_so)
 	$(RUSTC) $(RUST_FLAGS) -o $@ $<
 
 test: beef

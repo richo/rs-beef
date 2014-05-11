@@ -13,7 +13,7 @@ impl Context {
     }
 }
 
-fn effective_len(program: &Program) -> uint {
+pub fn effective_len(program: &Program) -> uint {
     let mut len = 0;
     for op in program.iter() {
         match *op {

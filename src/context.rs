@@ -1,4 +1,4 @@
-static TAPE_WIDTH: uint = 30000;
+pub static TAPE_WIDTH: uint = 30000;
 
 pub struct Context {
     pub idx: uint,
