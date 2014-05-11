@@ -3,7 +3,7 @@ use std::old_io::{BufferedReader};
 
 pub type Program = Vec<OpCode>;
 
-#[derive(Show)]
+#[derive(Debug)]
 pub enum OpCode {
     Lshift,
     Rshift,
