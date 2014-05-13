@@ -13,7 +13,27 @@ struct Context {
     text: *u8,
 }
 
-fn assemble_into(program: Program, mut text_segment: *mut u8) {
+struct Assembler {
+    ptr: *u8
+}
+
+impl Assembler {
+    fn byte(&mut self, byte: u8) {
+        unsafe {
+            let mut ptr: *mut u8 = self.ptr as *mut u8;
+            *ptr = byte;
+            self.ptr = self.ptr.offset(1);
+        }
+    }
+
+    fn byte_array(&mut self, bytes: &[u8]) {
+        for i in bytes.iter() {
+            self.byte(*i);
+        }
+    }
+}
+
+fn assemble_into(program: Program, assembler: &mut Assembler) {
     // let asm: &[Option<u8>];
     for isn in program.iter() {
         let asm = match *isn {
@@ -31,10 +51,7 @@ fn assemble_into(program: Program, mut text_segment: *mut u8) {
         for i in asm.iter() {
             match *i {
                 Some(h) => {
-                    unsafe {
-                        *text_segment = h;
-                        text_segment = text_segment.offset(1);
-                    }
+                    assembler.byte(h);
                 },
                 None => {}
             }
@@ -73,40 +90,33 @@ pub fn load(program: Program, tape_size: uint) -> *libc::c_void {
     // }
 
     let mut ctx: Context = unsafe { mem::init() };
+    let mut asm = Assembler { ptr: start_text as *u8 };
     let mut text = start_text as *mut u8;
 
     println!("Old text segment at {}", text);
 
-    ctx.putc = text as *u8;
+    ctx.putc = asm.ptr;
+    // TODO replace all these ctx vars with offsets from a known base
+
     // Setup the syscall handler for putc right at the start:
-    let putc_text = [ 0x6A, 0x01, 0x51, 0x6A, 0x01, 0x48, 0xC7, 0xC0,
-               0x04, 0x00, 0x00, 0x00, 0x48, 0x83, 0xEC, 0x04,
-               0xCD, 0x80, 0x48, 0x83, 0xC4, 0x10, 0xC3 ];
-    for i in putc_text.iter() {
-                   unsafe {
-                       *text = *i;
-                       text = text.offset(1);
-                   }
-               }
+    asm.byte_array([ 0x6A, 0x01, 0x51, 0x6A, 0x01, 0x48, 0xC7, 0xC0,
+                     0x04, 0x00, 0x00, 0x00, 0x48, 0x83, 0xEC, 0x04,
+                     0xCD, 0x80, 0x48, 0x83, 0xC4, 0x10, 0xC3 ]);
 
 
     // Entry point for the real executable
-    ctx.text = text as *u8;
+    ctx.text = asm.ptr;
 
-    // Load putc into rbx
-    for i in [ 0x48, 0xBB, 0x00, 0xA0, 0x4F, 0x05, 0x01, 0x00, 0x00, 0x00 ].iter() {
-        unsafe {
-            *text = *i;
-            text = text.offset(1);
-        }
-    }
-
-
+    // Load putc into rbx TODO Fixup address
+    asm.byte_array([ 0x48, 0xBB,
+                   // Load address
+                   0x00, 0xA0, 0x4F, 0x05, 0x01,
+                   0x00, 0x00, 0x00 ]);
 
     println!("Putc function located at: {}", ctx.putc);
     println!("Text segment located at: {}", ctx.text);
 
-    assemble_into(program, ctx.text as *mut u8);
+    assemble_into(program, &mut asm);
 
     let pid = unsafe { getpid() as uint };
     println!("Sleeping forever to allow debugger attach, relevantly, pid: {}", pid);
@@ -115,9 +125,9 @@ pub fn load(program: Program, tape_size: uint) -> *libc::c_void {
 
     println!("So I gess we're jumpin' jumpin'");
 
-    unsafe {
-        asm!("jmp $0" :: "0"(ctx.text));
-    }
+    // unsafe {
+    //     asm!("callq $0" :: "r"(ctx.text));
+    // }
 
 
     0 as *libc::c_void
