@@ -33,10 +33,11 @@ impl Assembler {
     }
 }
 
+static FRAME_SIZE: u8 = 5;
 fn assemble_into(program: Program, assembler: &mut Assembler) {
     // let asm: &[Option<u8>];
     for isn in program.iter() {
-        let asm = match *isn {
+        let asm: [Option<u8>, ..FRAME_SIZE] = match *isn {
             // LOLOLOL
             // add 1, rsi
             parser::Rshift => [ Some(0x48), Some(0x83), Some(0xC6), Some(0x01), None      ],
