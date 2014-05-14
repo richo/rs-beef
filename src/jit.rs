@@ -35,6 +35,7 @@ impl Assembler {
 
 enum Reg {
     Rsi,
+    R12,
 }
 
 static FRAME_SIZE: u8 = 5;
@@ -58,6 +59,11 @@ mod x64 {
     pub fn i_deci(reg: super::Reg, v: u8) -> super::Instructions {
         [ Some(0x80), Some(0x2E), Some(0x01), None      , None      ]
     }
+
+    pub fn i_call(reg: super::Reg) -> super::Instructions{
+        // Assumes r12
+        [ Some(0x41), Some(0xFF), Some(0xD4), None      , None      ]
+    }
 }
 
 fn assemble_into(program: Program, assembler: &mut Assembler) {
@@ -74,7 +80,7 @@ fn assemble_into(program: Program, assembler: &mut Assembler) {
             // sub 1, [rsi]
             parser::Dec    => x64::i_deci(Rsi, 1),
             // call r12
-            parser::Putc   => [ Some(0x41), Some(0xFF), Some(0xD4), None      , None      ],
+            parser::Putc   => x64::i_call(R12),
             // TODO call r13
             parser::Getc   => fail!("Getc not imlemented"),
             // TODO: Maintain a jump table, use successive instructions to inc
