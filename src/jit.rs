@@ -33,16 +33,31 @@ impl Assembler {
     }
 }
 
+enum Reg {
+    Rsi,
+}
+
 static FRAME_SIZE: u8 = 5;
+type Instructions = [Option<u8>, ..FRAME_SIZE];
+mod x64 {
+    pub fn addi(reg: super::Reg, v: u8) -> super::Instructions {
+        [ Some(0x48), Some(0x83), Some(0xC6), Some(  v ), None      ]
+    }
+
+    pub fn deci(reg: super::Reg, v: u8) -> super::Instructions {
+        [ Some(0x48), Some(0x83), Some(0xEE), Some(  v ), None      ]
+    }
+}
+
 fn assemble_into(program: Program, assembler: &mut Assembler) {
     // let asm: &[Option<u8>];
     for isn in program.iter() {
         let asm: [Option<u8>, ..FRAME_SIZE] = match *isn {
             // LOLOLOL
             // add 1, rsi
-            parser::Rshift => [ Some(0x48), Some(0x83), Some(0xC6), Some(0x01), None      ],
+            parser::Rshift => x64::addi(Rsi, 1),
             // sub 1, rsi
-            parser::Lshift => [ Some(0x48), Some(0x83), Some(0xEE), Some(0x01), None      ],
+            parser::Lshift => x64::deci(Rsi, 1),
             // sub 1, [rsi]
             parser::Dec    => [ Some(0x80), Some(0x2E), Some(0x01), None      , None      ],
             // add 1, [rsi]
