@@ -38,9 +38,9 @@ enum Reg {
     R12,
 }
 
-static FRAME_SIZE: u8 = 5;
-type Instructions = [Option<u8>, ..FRAME_SIZE];
+type Instructions = [Option<u8>, ..x64::FRAME_SIZE];
 mod x64 {
+    pub static FRAME_SIZE: u8 = 5;
     // TODO Actuall check which register this is
     pub fn addi(reg: super::Reg, v: u8) -> super::Instructions {
         [ Some(0x48), Some(0x83), Some(0xC6), Some(  v ), None      ]
@@ -69,7 +69,7 @@ mod x64 {
 fn assemble_into(program: Program, assembler: &mut Assembler) {
     // let asm: &[Option<u8>];
     for isn in program.iter() {
-        let asm: [Option<u8>, ..FRAME_SIZE] = match *isn {
+        let asm: [Option<u8>, ..x64::FRAME_SIZE] = match *isn {
             // LOLOLOL
             // add 1, rsi
             parser::Rshift => x64::addi(Rsi, 1),
