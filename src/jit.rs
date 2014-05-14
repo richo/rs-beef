@@ -47,6 +47,16 @@ mod x64 {
     pub fn deci(reg: super::Reg, v: u8) -> super::Instructions {
         [ Some(0x48), Some(0x83), Some(0xEE), Some(  v ), None      ]
     }
+
+    // Indirect
+
+    pub fn i_addi(reg: super::Reg, v: u8) -> super::Instructions {
+        [ Some(0x80), Some(0x06), Some(0x01), None      , None      ]
+    }
+
+    pub fn i_deci(reg: super::Reg, v: u8) -> super::Instructions {
+        [ Some(0x80), Some(0x2E), Some(0x01), None      , None      ]
+    }
 }
 
 fn assemble_into(program: Program, assembler: &mut Assembler) {
@@ -58,10 +68,10 @@ fn assemble_into(program: Program, assembler: &mut Assembler) {
             parser::Rshift => x64::addi(Rsi, 1),
             // sub 1, rsi
             parser::Lshift => x64::deci(Rsi, 1),
-            // sub 1, [rsi]
-            parser::Dec    => [ Some(0x80), Some(0x2E), Some(0x01), None      , None      ],
             // add 1, [rsi]
-            parser::Inc    => [ Some(0x80), Some(0x06), Some(0x01), None      , None      ],
+            parser::Inc    => x64::i_addi(Rsi, 1),
+            // sub 1, [rsi]
+            parser::Dec    => x64::i_deci(Rsi, 1),
             // call r12
             parser::Putc   => [ Some(0x41), Some(0xFF), Some(0xD4), None      , None      ],
             // TODO call r13
