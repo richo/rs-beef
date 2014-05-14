@@ -31,6 +31,15 @@ impl Assembler {
             self.byte(*i);
         }
     }
+
+    fn instructions(&mut self, asm: Instructions) {
+        for i in asm.iter() {
+            self.byte(match *i {
+                Some(h) => { h },
+                None => { 0x90 }
+            })
+        }
+    }
 }
 
 enum Reg {
@@ -40,6 +49,8 @@ enum Reg {
 
 type Instructions = [Option<u8>, ..x64::FRAME_SIZE];
 mod x64 {
+    use parser;
+
     pub static FRAME_SIZE: u8 = 5;
     // TODO Actuall check which register this is
     pub fn addi(reg: super::Reg, v: u8) -> super::Instructions {
@@ -64,12 +75,29 @@ mod x64 {
         // Assumes r12
         [ Some(0x41), Some(0xFF), Some(0xD4), None      , None      ]
     }
+
+    pub fn jmp(v: uint) -> super::Instructions {
+        [ None, None, None, None, None ]
+    }
+
+    pub fn effective_len(program: &parser::Program) -> uint {
+        let mut len = 0;
+        let frame_size = FRAME_SIZE as uint;
+        for op in program.iter() {
+            match *op {
+                // Absurd guess. Who even knows.
+                parser::Loop(ref l) => len += effective_len(l) + frame_size * 2,
+                _       => len += frame_size,
+            }
+        }
+        len
+    }
 }
 
 fn assemble_into(program: Program, assembler: &mut Assembler) {
     // let asm: &[Option<u8>];
     for isn in program.iter() {
-        let asm: [Option<u8>, ..x64::FRAME_SIZE] = match *isn {
+        let asm: Instructions = match *isn {
             // LOLOLOL
             // add 1, rsi
             parser::Rshift => x64::addi(Rsi, 1),
@@ -86,15 +114,16 @@ fn assemble_into(program: Program, assembler: &mut Assembler) {
             // TODO: Maintain a jump table, use successive instructions to inc
             // and dec it so that we know which jump target to use. These can just
             // be pointer offsets into the text page.
-            parser::Loop(ref l)=> fail!("Loop not implemented"),
+            parser::Loop(ref l)=> {
+                let ret = assembler.ptr;
+                // Kludge, assemble all we wan
+                // x64::i_cmp(Rsi, 0);
+                [ None, None, None, None, None]
+
+            }
         };
 
-        for i in asm.iter() {
-            assembler.byte(match *i {
-                Some(h) => { h },
-                None => { 0x90 }
-            })
-        }
+        assembler.instructions(asm);
     }
 
 }
