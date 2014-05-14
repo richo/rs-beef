@@ -8,6 +8,7 @@
 #![feature(asm)]
 
 extern crate libc;
+extern crate core;
 
 pub mod parser;
 pub mod eval;

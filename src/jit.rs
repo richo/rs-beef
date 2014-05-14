@@ -38,13 +38,21 @@ fn assemble_into(program: Program, assembler: &mut Assembler) {
     for isn in program.iter() {
         let asm = match *isn {
             // LOLOLOL
+            // add 1, rsi
             parser::Rshift => [ Some(0x48), Some(0x83), Some(0xC6), Some(0x01), None      ],
+            // sub 1, rsi
             parser::Lshift => [ Some(0x48), Some(0x83), Some(0xEE), Some(0x01), None      ],
+            // sub 1, [rsi]
             parser::Dec    => [ Some(0x80), Some(0x2E), Some(0x01), None      , None      ],
+            // add 1, [rsi]
             parser::Inc    => [ Some(0x80), Some(0x06), Some(0x01), None      , None      ],
-            // Lololol, seriously just use a register to hang onto putc
-            parser::Putc   => [ Some(0xFF), Some(0xD3), None      , None      , None      ],
+            // call r12
+            parser::Putc   => [ Some(0x41), Some(0xFF), Some(0xD4), None      , None      ],
+            // TODO call r13
             parser::Getc   => fail!("Getc not imlemented"),
+            // TODO: Maintain a jump table, use successive instructions to inc
+            // and dec it so that we know which jump target to use. These can just
+            // be pointer offsets into the text page.
             parser::Loop(ref l)=> fail!("Loop not implemented"),
         };
 
@@ -70,6 +78,15 @@ pub fn load(program: Program, tape_size: uint) -> *libc::c_void {
         fail!("Couldn't mmap tape: {}", os::last_os_error());
     }
 
+    // So I guess we just zero the tape because reasons?
+    let mut memset_o = tape as *mut u8;
+    for _ in range(0, tape_size) {
+        unsafe {
+            *memset_o = 0;
+            memset_o = memset_o.offset(0);
+        }
+    }
+
     let text_size = compiler::effective_len(&program) * 4; // 32 bit wide instruction, probably
     let start_text = unsafe {
         libc::mmap(0 as *libc::c_void, text_size as u64,
@@ -81,54 +98,39 @@ pub fn load(program: Program, tape_size: uint) -> *libc::c_void {
         fail!("Couldn't mmap text: {}", os::last_os_error());
     }
 
-    // Setup esi as a pointer to the tape
-    // TODO Setup a return address (lol?)
-    // let tape_prelude = vec!(0xbe, 0x00, 0x20, 0x00, 0x10, 0xf8);
-    // for isn in tape_prelude.iter() {
-    //     // *tape = *isn;
-    //     // tape += 1;
-    // }
-
     let mut ctx: Context = unsafe { mem::init() };
     let mut asm = Assembler { ptr: start_text as *u8 };
     let mut text = start_text as *mut u8;
 
-    println!("Old text segment at {}", text);
-
+    // Somewhat less lurky solution:
+    // mov    eax, 0x2000004
+    // mov    edi, 0x1
+    // ; rsi is already a pointer to buf
+    // mov    edx, 0x1
+    // syscall
+    // ret
     ctx.putc = asm.ptr;
-    // TODO replace all these ctx vars with offsets from a known base
-
-    // Setup the syscall handler for putc right at the start:
-    asm.byte_array([ 0x6A, 0x01, 0x51, 0x6A, 0x01, 0x48, 0xC7, 0xC0,
-                     0x04, 0x00, 0x00, 0x00, 0x48, 0x83, 0xEC, 0x04,
-                     0xCD, 0x80, 0x48, 0x83, 0xC4, 0x10, 0xC3 ]);
-
+    asm.byte_array([0xB8, 0x04, 0x00, 0x00, 0x02, 0xBF, 0x01, 0x00, 0x00, 0x00, 0xBA, 0x01, 0x00, 0x00, 0x00, 0x0F, 0x05, 0xC3]);
 
     // Entry point for the real executable
     ctx.text = asm.ptr;
-
-    // Load putc into rbx TODO Fixup address
-    asm.byte_array([ 0x48, 0xBB,
-                   // Load address
-                   0x00, 0xA0, 0x4F, 0x05, 0x01,
-                   0x00, 0x00, 0x00 ]);
 
     println!("Putc function located at: {}", ctx.putc);
     println!("Text segment located at: {}", ctx.text);
 
     assemble_into(program, &mut asm);
 
-    let pid = unsafe { getpid() as uint };
-    println!("Sleeping forever to allow debugger attach, relevantly, pid: {}", pid);
+    // let pid = unsafe { getpid() as uint };
+    // println!("Sleeping forever to allow debugger attach, relevantly, pid: {}", pid);
+    // sleep(10000);
+    // println!("So I gess we're jumpin' jumpin'");
+    // unsafe { ::core::intrinsics::breakpoint(); }
 
-    sleep(10000);
-
-    println!("So I gess we're jumpin' jumpin'");
-
-    // unsafe {
-    //     asm!("callq $0" :: "r"(ctx.text));
-    // }
-
+    unsafe {
+        asm!("movq  $0, %r12" :: "r"(ctx.putc));
+        asm!("movq  $0, %rax
+             callq  *%rax" :: "r"(ctx.text));
+    }
 
     0 as *libc::c_void
 }
