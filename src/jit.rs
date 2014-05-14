@@ -40,6 +40,7 @@ enum Reg {
 static FRAME_SIZE: u8 = 5;
 type Instructions = [Option<u8>, ..FRAME_SIZE];
 mod x64 {
+    // TODO Actuall check which register this is
     pub fn addi(reg: super::Reg, v: u8) -> super::Instructions {
         [ Some(0x48), Some(0x83), Some(0xC6), Some(  v ), None      ]
     }
