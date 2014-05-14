@@ -76,6 +76,10 @@ mod x64 {
         [ Some(0x41), Some(0xFF), Some(0xD4), None      , None      ]
     }
 
+    pub fn i_cmp(reg: super::Reg, v: u8) -> super::Instructions{
+        [ Some(0x66), Some(0x83), Some(0x3E), Some(  v ), None      ]
+    }
+
     pub fn jmp(v: uint) -> super::Instructions {
         [ None, None, None, None, None ]
     }
@@ -117,7 +121,7 @@ fn assemble_into(program: Program, assembler: &mut Assembler) {
             parser::Loop(ref l)=> {
                 let ret = assembler.ptr;
                 // Kludge, assemble all we wan
-                // x64::i_cmp(Rsi, 0);
+                assembler.instructions(x64::i_cmp(Rsi, 0));
                 [ None, None, None, None, None]
 
             }
