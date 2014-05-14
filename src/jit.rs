@@ -57,12 +57,10 @@ fn assemble_into(program: Program, assembler: &mut Assembler) {
         };
 
         for i in asm.iter() {
-            match *i {
-                Some(h) => {
-                    assembler.byte(h);
-                },
-                None => {}
-            }
+            assembler.byte(match *i {
+                Some(h) => { h },
+                None => { 0x90 }
+            })
         }
     }
 
