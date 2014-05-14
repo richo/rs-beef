@@ -78,14 +78,6 @@ pub fn load(program: Program, tape_size: uint) -> *libc::c_void {
         fail!("Couldn't mmap tape: {}", os::last_os_error());
     }
 
-    // So I guess we just zero the tape because reasons?
-    let mut memset_o = tape as *mut u8;
-    for _ in range(0, tape_size) {
-        unsafe {
-            *memset_o = 0;
-            memset_o = memset_o.offset(0);
-        }
-    }
 
     let text_size = compiler::effective_len(&program) * 4; // 32 bit wide instruction, probably
     let start_text = unsafe {
