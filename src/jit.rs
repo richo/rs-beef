@@ -7,6 +7,7 @@ use parser::{OpCode,Loop,Program};
 use compiler;
 use std::io::timer::sleep;
 use libc::funcs::posix88::unistd::getpid;
+use core::ptr;
 
 struct Context {
     putc: *u8,
@@ -141,7 +142,9 @@ pub fn load(program: Program, tape_size: uint) -> *libc::c_void {
     if tape == libc::MAP_FAILED {
         fail!("Couldn't mmap tape: {}", os::last_os_error());
     }
-
+    unsafe {
+        ptr::zero_memory(tape as *mut u8, tape_size);
+    }
 
     let text_size = compiler::effective_len(&program) * 4; // 32 bit wide instruction, probably
     let start_text = unsafe {
