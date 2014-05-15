@@ -99,7 +99,7 @@ mod x64 {
     }
 }
 
-fn assemble_into(program: Program, assembler: &mut Assembler) {
+fn assemble_into(program: &Program, assembler: &mut Assembler) {
     // let asm: &[Option<u8>];
     for isn in program.iter() {
         let asm: Instructions = match *isn {
@@ -177,7 +177,7 @@ pub fn load(program: Program, tape_size: uint) -> *libc::c_void {
     println!("Putc function located at: {}", ctx.putc);
     println!("Text segment located at: {}", ctx.text);
 
-    assemble_into(program, &mut asm);
+    assemble_into(&program, &mut asm);
 
     // let pid = unsafe { getpid() as uint };
     // println!("Sleeping forever to allow debugger attach, relevantly, pid: {}", pid);
