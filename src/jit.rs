@@ -11,6 +11,7 @@ use core::ptr;
 
 struct Context {
     putc: *u8,
+    getc: *u8,
     text: *u8,
 }
 
@@ -82,6 +83,10 @@ mod x64 {
     }
 
     pub fn jmp(v: uint) -> super::Instructions {
+        [ None, None, None, None, None ]
+    }
+
+    pub fn jne(v: uint) -> super::Instructions {
         [ None, None, None, None, None ]
     }
 
@@ -171,6 +176,15 @@ pub fn load(program: Program, tape_size: uint) -> *libc::c_void {
     ctx.putc = asm.ptr;
     asm.byte_array([0xB8, 0x04, 0x00, 0x00, 0x02, 0xBF, 0x01, 0x00, 0x00, 0x00, 0xBA, 0x01, 0x00, 0x00, 0x00, 0x0F, 0x05, 0xC3]);
 
+    // mov    eax, 0x2000003
+    // mov    edi, 0x1
+    // ; rsi is already a pointer to buf
+    // mov    edx, 0x1
+    // syscall
+    // ret
+    ctx.getc = asm.ptr;
+    asm.byte_array([0xB8, 0x03, 0x00, 0x00, 0x02, 0xBF, 0x01, 0x00, 0x00, 0x00, 0xBA, 0x01, 0x00, 0x00, 0x00, 0x0F, 0x05, 0xC3]);
+
     // Entry point for the real executable
     ctx.text = asm.ptr;
 
@@ -187,6 +201,7 @@ pub fn load(program: Program, tape_size: uint) -> *libc::c_void {
 
     unsafe {
         asm!("movq  $0, %r12" :: "r"(ctx.putc));
+        asm!("movq  $0, %r13" :: "r"(ctx.getc));
         asm!("movq  $0, %rsi" :: "r"(tape));
         asm!("movq  $0, %rax
              callq  *%rax" :: "r"(ctx.text));
