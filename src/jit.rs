@@ -187,6 +187,7 @@ pub fn load(program: Program, tape_size: uint) -> *libc::c_void {
 
     unsafe {
         asm!("movq  $0, %r12" :: "r"(ctx.putc));
+        asm!("movq  $0, %rsi" :: "r"(tape));
         asm!("movq  $0, %rax
              callq  *%rax" :: "r"(ctx.text));
     }
