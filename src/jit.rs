@@ -47,6 +47,7 @@ impl Assembler {
 enum Reg {
     Rsi,
     R12,
+    R13,
 }
 
 type Instructions = [Option<u8>, ..x64::FRAME_SIZE];
@@ -74,8 +75,12 @@ mod x64 {
     }
 
     pub fn i_call(reg: super::Reg) -> super::Instructions{
-        // Assumes r12
-        [ Some(0x41), Some(0xFF), Some(0xD4), None      , None      ]
+        let reg = match reg {
+            R12 => 0xD4,
+            R13 => 0xD5,
+            _   => fail!("unsupported register for call"),
+        };
+        [ Some(0x41), Some(0xFF), Some(reg ), None      , None      ]
     }
 
     pub fn i_cmp(reg: super::Reg, v: u8) -> super::Instructions{
@@ -120,7 +125,7 @@ fn assemble_into(program: &Program, assembler: &mut Assembler) {
             // call r12
             parser::Putc   => x64::i_call(R12),
             // TODO call r13
-            parser::Getc   => fail!("Getc not imlemented"),
+            parser::Getc   => x64::i_call(R13),
             // TODO: Maintain a jump table, use successive instructions to inc
             // and dec it so that we know which jump target to use. These can just
             // be pointer offsets into the text page.
