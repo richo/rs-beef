@@ -1,4 +1,4 @@
-#![crate_id = "beef"]
+#![crate_name = "beef"]
 
 #![license = "MIT"]
 #![crate_type = "dylib"]

@@ -1,7 +1,7 @@
 extern crate beef;
 
 use std::os;
-use std::io::{BufferedWriter,File};
+use std::io::File;
 
 use beef::parser;
 use beef::compiler;
