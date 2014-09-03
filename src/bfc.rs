@@ -30,7 +30,7 @@ fn main() {
     let args = os::args();
     match args.len() {
         0 => unreachable!(),
-        3 => parse_and_compile(*args.get(1), *args.get(2)),
+        3 => parse_and_compile(args[1].as_slice(), args[2].as_slice()),
         _ => usage(),
     }
 }

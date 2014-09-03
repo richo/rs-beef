@@ -52,6 +52,5 @@ pub fn parse_file(filename: &str) -> Option<Program> {
             _   => {}
         }
     }
-
     Some(program)
 }

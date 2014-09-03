@@ -27,7 +27,7 @@ fn main() {
     let args = os::args();
     match args.len() {
         0 => unreachable!(),
-        2 => parse_and_eval(*args.get(1)),
+        2 => parse_and_eval(args[1].as_slice()),
         _ => usage(),
     }
 }
