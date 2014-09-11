@@ -10,13 +10,13 @@ use libc::funcs::posix88::unistd::getpid;
 use core::ptr;
 
 struct Context {
-    putc: *u8,
-    getc: *u8,
-    text: *u8,
+    putc: *const u8,
+    getc: *const u8,
+    text: *const u8,
 }
 
 struct Assembler {
-    ptr: *u8
+    ptr: *const u8
 }
 
 impl Assembler {
@@ -54,7 +54,7 @@ type Instructions = [Option<u8>, ..x64::FRAME_SIZE];
 mod x64 {
     use parser;
 
-    pub static FRAME_SIZE: u8 = 5;
+    pub static FRAME_SIZE: uint = 5;
     // TODO Actuall check which register this is
     pub fn addi(reg: super::Reg, v: u8) -> super::Instructions {
         [ Some(0x48), Some(0x83), Some(0xC6), Some(  v ), None      ]
@@ -77,8 +77,8 @@ mod x64 {
     pub fn i_call(reg: super::Reg) -> super::Instructions{
         let reg = match reg {
             R12 => 0xD4,
-            R13 => 0xD5,
-            _   => fail!("unsupported register for call"),
+            // R13 => 0xD5,
+            // _   => fail!("unsupported register for call"),
         };
         [ Some(0x41), Some(0xFF), Some(reg ), None      , None      ]
     }
@@ -143,11 +143,11 @@ fn assemble_into(program: &Program, assembler: &mut Assembler) {
 
 }
 
-pub fn load(program: Program, tape_size: uint) -> *libc::c_void {
+pub fn load(program: Program, tape_size: uint) -> *const libc::c_void {
     let tape = unsafe {
-        libc::mmap(0 as *libc::c_void, tape_size as u64,
+        libc::mmap(0 as *mut libc::c_void, tape_size as u64,
         libc::PROT_READ | libc::PROT_WRITE,
-        libc::MAP_ANON | libc::MAP_PRIVATE, 0, 0) as *libc::c_void
+        libc::MAP_ANON | libc::MAP_PRIVATE, 0, 0) as *mut libc::c_void
     };
     if tape == libc::MAP_FAILED {
         fail!("Couldn't mmap tape: {}", os::last_os_error());
@@ -158,17 +158,17 @@ pub fn load(program: Program, tape_size: uint) -> *libc::c_void {
 
     let text_size = compiler::effective_len(&program) * 4; // 32 bit wide instruction, probably
     let start_text = unsafe {
-        libc::mmap(0 as *libc::c_void, text_size as u64,
+        libc::mmap(0 as *mut libc::c_void, text_size as u64,
         // TODO Remove the x bit before we jmp in
         libc::PROT_WRITE | libc::PROT_READ | libc::PROT_EXEC,
-        libc::MAP_ANON | libc::MAP_PRIVATE, 0, 0) as *libc::c_void
+        libc::MAP_ANON | libc::MAP_PRIVATE, 0, 0) as *mut libc::c_void
     };
     if start_text == libc::MAP_FAILED {
         fail!("Couldn't mmap text: {}", os::last_os_error());
     }
 
     let mut ctx: Context = unsafe { mem::init() };
-    let mut asm = Assembler { ptr: start_text as *u8 };
+    let mut asm = Assembler { ptr: start_text as *const u8 };
     let mut text = start_text as *mut u8;
 
     // Somewhat less lurky solution:
@@ -212,5 +212,5 @@ pub fn load(program: Program, tape_size: uint) -> *libc::c_void {
              callq  *%rax" :: "r"(ctx.text));
     }
 
-    0 as *libc::c_void
+    0 as *const libc::c_void
 }
