@@ -1,7 +1,9 @@
 RUSTC := $(shell which rustc)
 RUST_FLAGS = -L build
 
-all: beef bfc
+ALL = beef bfc
+
+all: $(ALL)
 
 libbeef_so = build/libbeef.timestamp
 
@@ -23,6 +25,7 @@ test: beef
 
 clean:
 	./runtests.sh --clean
-	rm beef
+	rm -rf build
+	rm $(ALL)
 
 .PHONY: test clean
