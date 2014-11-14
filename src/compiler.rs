@@ -28,7 +28,7 @@ pub fn compile<W: Writer>(program: &[OpCode], outfile: &mut W) {
     let mut ctx = Context::new();
 
     outfile.write(PRELUDE.as_bytes());
-    let final = inner(program, outfile, &mut ctx);
+    let _ = inner(program, outfile, &mut ctx);
     outfile.write(format!("    isn{}:\n", ctx.isn).as_bytes());
     outfile.write(EPILOGUE.as_bytes());
 }
@@ -44,7 +44,7 @@ fn inner<W: Writer>(program: &[OpCode], outfile: &mut W, ctx: &mut Context) {
     macro_rules! write_s(
         ($op:expr) => (
             {
-            write!($op.to_owned());
+            write!($op.to_string());
             ()
             }
 
@@ -63,7 +63,7 @@ fn inner<W: Writer>(program: &[OpCode], outfile: &mut W, ctx: &mut Context) {
             parser::Inc     => write_s!("    add     [esi], dword 1\n"),
             parser::Dec     => write_s!("    sub     [esi], dword 1\n"),
             parser::Putc    => write_s!("    call    dot\n"),
-            parser::Getc    => fail!("Getc not implemented"),
+            parser::Getc    => panic!("Getc not implemented"),
             parser::Loop(ref l) => {
                 let jmp = format!("    jmp     isn{}\n", ctx.isn - 1);
                 write_s!("    cmp      [esi], byte 0\n");

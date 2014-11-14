@@ -19,7 +19,7 @@ fn parse_and_eval(filename: &str) {
     let mut ctx = Context::new();
     match parser::parse_file(filename) {
         Some(program) => eval::eval(program.as_slice(), &mut ctx, &mut output, &mut input),
-        None => fail!("Failed to parse {}", filename)
+        None => panic!("Failed to parse {}", filename)
     }
 }
 

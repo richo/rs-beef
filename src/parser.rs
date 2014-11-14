@@ -46,7 +46,7 @@ pub fn parse_file(filename: &str) -> Option<Program> {
             ']' => {
                 match loop_stack.pop() {
                     Some(code) => push!(Loop(code)),
-                    None => fail!("Unbalanced braces"),
+                    None => panic!("Unbalanced braces"),
                 }
             }
             _   => {}

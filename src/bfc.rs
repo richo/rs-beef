@@ -15,7 +15,7 @@ fn parse_and_compile(filename: &str, outfile: &str) {
     let mut out = File::create(&Path::new(outfile));
     match parser::parse_file(filename) {
         Some(program) => compiler::compile(program.as_slice(), &mut out),
-        None => fail!("Failed to parse {}", filename)
+        None => panic!("Failed to parse {}", filename)
     }
 
     println!("Wrote output to {} \\\\o/", outfile);

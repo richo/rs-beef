@@ -1,4 +1,4 @@
-static TAPE_WIDTH: uint = 30000;
+const TAPE_WIDTH: uint = 30000;
 
 pub struct Context {
     pub idx: uint,
@@ -9,6 +9,7 @@ impl Context {
     pub fn new() -> Context {
         Context {
             idx : 0,
+            // FIXME
             tape: [0, ..TAPE_WIDTH],
         }
     }
