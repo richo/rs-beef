@@ -5,6 +5,9 @@ ALL = beef bfc
 
 all: $(ALL)
 
+docs:
+	rustdoc src/lib.rs
+
 libbeef_so = build/libbeef.timestamp
 
 
@@ -28,4 +31,4 @@ clean:
 	rm -rf build
 	rm $(ALL)
 
-.PHONY: test clean
+.PHONY: test clean doc
