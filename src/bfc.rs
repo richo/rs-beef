@@ -1,14 +1,14 @@
 extern crate beef;
 
 use std::os;
-use std::io::File;
+use std::old_io::File;
 
 use beef::parser;
 use beef::compiler;
 
 fn usage() {
     let args = os::args();
-    println!("Usage: {} <filename> <outfile>", args.get(0));
+    println!("Usage: {} <filename> <outfile>", args.get(0).unwrap());
 }
 
 fn parse_and_compile(filename: &str, outfile: &str) {

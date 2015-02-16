@@ -11,13 +11,13 @@ pub fn eval<W: Writer, R: Reader>(program: &[OpCode], ctx: &mut Context, output:
 
     while pc < len {
         match program[pc] {
-            parser::Lshift  => ctx.idx -= 1,
-            parser::Rshift  => ctx.idx += 1,
-            parser::Inc     => ctx.tape[ctx.idx] += 1,
-            parser::Dec     => ctx.tape[ctx.idx] -= 1,
-            parser::Putc    => { output.write_u8(ctx.tape[ctx.idx]); () },
-            parser::Getc    => { ctx.tape[ctx.idx] = input.read_u8().unwrap(); () },
-            parser::Loop(ref l) => {
+            OpCode::Lshift  => ctx.idx -= 1,
+            OpCode::Rshift  => ctx.idx += 1,
+            OpCode::Inc     => ctx.tape[ctx.idx] += 1,
+            OpCode::Dec     => ctx.tape[ctx.idx] -= 1,
+            OpCode::Putc    => { output.write_u8(ctx.tape[ctx.idx]); () },
+            OpCode::Getc    => { ctx.tape[ctx.idx] = input.read_u8().unwrap(); () },
+            OpCode::Loop(ref l) => {
                 while ctx.tape[ctx.idx] != 0 {
                     eval(l.as_slice(), ctx, output, input);
                 };

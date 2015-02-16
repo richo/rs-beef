@@ -1,8 +1,8 @@
-const TAPE_WIDTH: uint = 30000;
+const TAPE_WIDTH: usize = 30000;
 
 pub struct Context {
-    pub idx: uint,
-    pub tape: [u8, ..TAPE_WIDTH],
+    pub idx: usize,
+    pub tape: [u8; TAPE_WIDTH],
 }
 
 impl Context {
@@ -10,7 +10,7 @@ impl Context {
         Context {
             idx : 0,
             // FIXME
-            tape: [0, ..TAPE_WIDTH],
+            tape: [0; TAPE_WIDTH],
         }
     }
 }

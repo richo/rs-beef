@@ -1,9 +1,9 @@
-use std::io::File;
-use std::io::{BufferedReader};
+use std::old_io::File;
+use std::old_io::{BufferedReader};
 
 pub type Program = Vec<OpCode>;
 
-#[deriving(Show)]
+#[derive(Show)]
 pub enum OpCode {
     Lshift,
     Rshift,
@@ -19,7 +19,7 @@ pub fn parse_file(filename: &str) -> Option<Program> {
     let mut loop_stack: Vec<Vec<OpCode>> = vec!();
     let mut file = BufferedReader::new(File::open(&Path::new(filename)));
 
-    macro_rules! push(
+    macro_rules! push {
         ($op:expr) => (
             match loop_stack.pop() { // Oh god why
                 Some(mut v) => {
@@ -29,23 +29,23 @@ pub fn parse_file(filename: &str) -> Option<Program> {
                 None    => program.push($op)
             }
             );
-        )
+        }
 
     for c in file.chars() {
         match c.unwrap() {
-            '<' => push!(Lshift),
-            '>' => push!(Rshift),
-            '.' => push!(Putc),
-            ',' => push!(Getc),
-            '+' => push!(Inc),
-            '-' => push!(Dec),
+            '<' => push!(OpCode::Lshift),
+            '>' => push!(OpCode::Rshift),
+            '.' => push!(OpCode::Putc),
+            ',' => push!(OpCode::Getc),
+            '+' => push!(OpCode::Inc),
+            '-' => push!(OpCode::Dec),
             // Deal with loops at "compile" time
             '[' => {
                 loop_stack.push(vec!());
             },
             ']' => {
                 match loop_stack.pop() {
-                    Some(code) => push!(Loop(code)),
+                    Some(code) => push!(OpCode::Loop(code)),
                     None => panic!("Unbalanced braces"),
                 }
             }

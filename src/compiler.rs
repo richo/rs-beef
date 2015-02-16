@@ -1,8 +1,8 @@
 use parser;
-use parser::{OpCode,Loop,Program};
+use parser::{OpCode,Program};
 
 struct Context {
-    isn: uint,
+    isn: usize,
 }
 
 impl Context {
@@ -13,11 +13,11 @@ impl Context {
     }
 }
 
-fn effective_len(program: &Program) -> uint {
+fn effective_len(program: &Program) -> usize {
     let mut len = 0;
     for op in program.iter() {
         match *op {
-            Loop(ref l) => len += effective_len(l) + 1,
+            OpCode::Loop(ref l) => len += effective_len(l) + 1,
             _       => len += 1,
         }
     }
@@ -35,13 +35,13 @@ pub fn compile<W: Writer>(program: &[OpCode], outfile: &mut W) {
 
 #[allow(unused_must_use)]
 fn inner<W: Writer>(program: &[OpCode], outfile: &mut W, ctx: &mut Context) {
-    macro_rules! write(
+    macro_rules! write{
         ($op:expr) => (
             outfile.write($op.as_bytes());
             )
-        )
+        }
 
-    macro_rules! write_s(
+    macro_rules! write_s{
         ($op:expr) => (
             {
             write!($op.to_string());
@@ -49,7 +49,7 @@ fn inner<W: Writer>(program: &[OpCode], outfile: &mut W, ctx: &mut Context) {
             }
 
             )
-        )
+        }
 
 
     let len = program.len();
@@ -58,13 +58,13 @@ fn inner<W: Writer>(program: &[OpCode], outfile: &mut W, ctx: &mut Context) {
         write!(format!("    isn{}:\n", ctx.isn));
         ctx.isn += 1;
         match program[pc] {
-            parser::Rshift  => write_s!("    add     esi, dword 1\n"),
-            parser::Lshift  => write_s!("    sub     esi, dword 1\n"),
-            parser::Inc     => write_s!("    add     [esi], dword 1\n"),
-            parser::Dec     => write_s!("    sub     [esi], dword 1\n"),
-            parser::Putc    => write_s!("    call    dot\n"),
-            parser::Getc    => panic!("Getc not implemented"),
-            parser::Loop(ref l) => {
+            OpCode::Rshift  => write_s!("    add     esi, dword 1\n"),
+            OpCode::Lshift  => write_s!("    sub     esi, dword 1\n"),
+            OpCode::Inc     => write_s!("    add     [esi], dword 1\n"),
+            OpCode::Dec     => write_s!("    sub     [esi], dword 1\n"),
+            OpCode::Putc    => write_s!("    call    dot\n"),
+            OpCode::Getc    => panic!("Getc not implemented"),
+            OpCode::Loop(ref l) => {
                 let jmp = format!("    jmp     isn{}\n", ctx.isn - 1);
                 write_s!("    cmp      [esi], byte 0\n");
                 write!(format!("    je      isn{}\n", ctx.isn + effective_len(l)));

@@ -1,7 +1,7 @@
 extern crate beef;
 
 use std::os;
-use std::io::stdio::{stdout,stdin};
+use std::old_io::stdio::{stdout,stdin};
 
 use beef::context::Context;
 use beef::parser;
@@ -9,7 +9,7 @@ use beef::eval;
 
 fn usage() {
     let args = os::args();
-    println!("Usage: {} <filename>", args.get(0));
+    println!("Usage: {} <filename>", args.get(0).unwrap());
 }
 
 fn parse_and_eval(filename: &str) {
