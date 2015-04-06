@@ -1,4 +1,5 @@
-use std::old_io::File;
+use std::io::Read;
+use std::fs::File;
 use std::old_io::{BufferedReader};
 
 pub type Program = Vec<OpCode>;
@@ -17,7 +18,10 @@ pub enum OpCode {
 pub fn parse_file(filename: &str) -> Option<Program> {
     let mut program: Program = vec!();
     let mut loop_stack: Vec<Vec<OpCode>> = vec!();
-    let mut file = BufferedReader::new(File::open(&Path::new(filename)));
+    let mut file = match File::open(filename) {
+        Ok(file) => file,
+        Err(err) => panic!(err),
+    };
 
     macro_rules! push {
         ($op:expr) => (

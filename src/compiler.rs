@@ -1,3 +1,5 @@
+use std::old_io::{Writer,Reader};
+
 use parser;
 use parser::{OpCode,Program};
 

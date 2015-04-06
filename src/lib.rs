@@ -1,3 +1,6 @@
+#![feature(io)]
+#![feature(convert)]
+#![feature(std_misc)]
 #![crate_name = "beef"]
 
 #![crate_type = "dylib"]

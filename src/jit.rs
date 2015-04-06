@@ -1,6 +1,7 @@
 use libc;
 use libc::mmap;
 use std::os;
+use std::io::Error;
 use parser;
 use parser::{OpCode,Program};
 use compiler;
@@ -50,7 +51,7 @@ pub fn load(program: Program, tape_size: usize) -> *const libc::c_void {
         libc::MAP_ANON | libc::MAP_PRIVATE, 0, 0) as *mut libc::c_void
     };
     if tape == libc::MAP_FAILED {
-        panic!("Couldn't mmap tape: {}", os::last_os_error());
+        panic!("Couldn't mmap tape: {}", Error::last_os_error());
     }
 
     let text_size = compiler::effective_len(&program) * 4; // 32 bit wide instruction, probably
@@ -61,7 +62,7 @@ pub fn load(program: Program, tape_size: usize) -> *const libc::c_void {
         libc::MAP_ANON | libc::MAP_PRIVATE, 0, 0) as *mut libc::c_void
     };
     if start_text == libc::MAP_FAILED {
-        panic!("Couldn't mmap text: {}", os::last_os_error());
+        panic!("Couldn't mmap text: {}", Error::last_os_error());
     }
 
     // Setup esi as a pointer to the tape

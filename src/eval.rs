@@ -2,6 +2,8 @@ use parser;
 use parser::{OpCode};
 use context::Context;
 
+use std::old_io::{Writer,Reader};
+
 pub fn eval<W: Writer, R: Reader>(program: &[OpCode], ctx: &mut Context, output: &mut W, input: &mut R) {
     // Does the spec have strong feelings about which way/how far the tape
     // goes?
