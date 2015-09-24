@@ -1,6 +1,5 @@
 use std::io::Read;
 use std::fs::File;
-use std::old_io::{BufferedReader};
 
 pub type Program = Vec<OpCode>;
 

@@ -1,6 +1,6 @@
 #![feature(io)]
 #![feature(convert)]
-#![feature(std_misc)]
+#![feature(thread_sleep)]
 #![crate_name = "beef"]
 
 #![crate_type = "dylib"]

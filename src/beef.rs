@@ -1,15 +1,17 @@
+#![feature(convert)]
 extern crate beef;
 
 use std::os;
-use std::old_io::stdio::{stdout,stdin};
+use std::env;
+use std::io::{stdout,stdin};
 
 use beef::context::Context;
 use beef::parser;
 use beef::eval;
 
 fn usage() {
-    let args = os::args();
-    println!("Usage: {} <filename>", args.get(0).unwrap());
+    let args: Vec<_> = env::args().collect();
+    println!("Usage: {} <filename>", args[0]);
 }
 
 fn parse_and_eval(filename: &str) {
@@ -24,10 +26,10 @@ fn parse_and_eval(filename: &str) {
 }
 
 fn main() {
-    let args = os::args();
+    let args: Vec<_> = env::args().collect();
     match args.len() {
         0 => unreachable!(),
-        2 => parse_and_eval(args[1].as_slice()),
+        2 => parse_and_eval(&args[1]),
         _ => usage(),
     }
 }

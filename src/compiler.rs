@@ -1,4 +1,4 @@
-use std::old_io::{Writer,Reader};
+use std::io::{Write,Read};
 
 use parser;
 use parser::{OpCode,Program};
@@ -26,7 +26,7 @@ pub fn effective_len(program: &Program) -> usize {
     len
 }
 
-pub fn compile<W: Writer>(program: &[OpCode], outfile: &mut W) {
+pub fn compile<W: Write>(program: &[OpCode], outfile: &mut W) {
     let mut ctx = Context::new();
 
     outfile.write(PRELUDE.as_bytes());
@@ -36,7 +36,7 @@ pub fn compile<W: Writer>(program: &[OpCode], outfile: &mut W) {
 }
 
 #[allow(unused_must_use)]
-fn inner<W: Writer>(program: &[OpCode], outfile: &mut W, ctx: &mut Context) {
+fn inner<W: Write>(program: &[OpCode], outfile: &mut W, ctx: &mut Context) {
     macro_rules! write{
         ($op:expr) => (
             outfile.write($op.as_bytes());

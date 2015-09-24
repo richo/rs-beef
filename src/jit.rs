@@ -1,3 +1,4 @@
+#[feature(thread_sleep)]
 use libc;
 use libc::mmap;
 use std::os;
@@ -5,8 +6,7 @@ use std::io::Error;
 use parser;
 use parser::{OpCode,Program};
 use compiler;
-use std::old_io::timer::sleep;
-use std::time::duration::Duration;
+use std::thread::sleep;
 use libc::funcs::posix88::unistd::getpid;
 
 struct Context {
@@ -115,13 +115,10 @@ pub fn load(program: Program, tape_size: usize) -> *const libc::c_void {
     let pid = unsafe { getpid() as usize };
     println!("Sleeping forever to allow debugger attach, relevantly, pid: {}", pid);
 
-    sleep(Duration::seconds(1));
+    // sleep(Duration::seconds(1));
 
     println!("So I gess we're jumpin' jumpin'");
 
-    unsafe {
-        asm!("jmp $0" :: "0"(ctx.text));
-    }
 
 
     0 as *mut libc::c_void
